@@ -13,11 +13,11 @@ def plot_df(subplots=False, df=None, folder='reports', title='data'):
     else:
         df.plot(y=col, title=title)
         plt.savefig(folder+'/%s.png'%title)
-    plt.show()
+    #plt.show()
 
 
 def plot_histogram(df = None, bins = 10, folder = 'reports', title = 'data'):
     plt.clf()
     df.hist(bins=bins, figsize=(20,15))
     plt.savefig(folder + '/%s.png' % title)
-    plt.show()
+    #plt.show()
