@@ -56,7 +56,7 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
 
         # bootstrap: resample 80% of total data to train, and test on the unused data for performance - mse
         # this loop results in two dataframe: one for predictions and one for fitness
-        sample_size = int(data_train.shape[0]*0.8)
+        sample_size = int(data_train.shape[0]*0.7)
         # resample shuffles data and ignored time sequence
         train_sample = resample(data_train, n_samples=sample_size, replace=False)
         test_sample = data_train[~data_train.index.isin(train_sample.index)]
