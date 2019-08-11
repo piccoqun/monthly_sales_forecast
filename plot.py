@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 
 
 def plot_df(subplots=False, df=None, folder='reports', title='data'):
+    # plot dataframe and save the figure under the folder reports
     plt.clf()
     col = df.columns
     if subplots:
@@ -17,6 +18,7 @@ def plot_df(subplots=False, df=None, folder='reports', title='data'):
 
 
 def plot_histogram(df = None, bins = 10, folder = 'reports', title = 'data'):
+    # plot histogram of dataframe and save the figure under the folder reports
     plt.clf()
     df.hist(bins=bins, figsize=(20,15))
     plt.savefig(folder + '/%s.png' % title)

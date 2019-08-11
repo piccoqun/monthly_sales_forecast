@@ -2,10 +2,11 @@ import xgboost as xgb
 # from xgboost import plot_importance
 import pandas as pd
 import numpy as np
-import random
 import time
+from sklearn.utils import resample
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
+from plot import plot_histogram
 import pickle
 import os
 
@@ -25,7 +26,6 @@ def build_model():
         # regularization parameters
         'alpha': [0.0001, 0.001, 0.1, 1.0, 5.0, 10.0, 50.0],
     }
-
     xgb_model = xgb.XGBRegressor()
     random_search_model = RandomizedSearchCV(xgb_model, param_distributions=params_dic, n_iter=200, cv=3, verbose=0, n_jobs=-1)
     return random_search_model
@@ -49,17 +49,21 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
     y_label = ['Actuals']
     fitness = pd.DataFrame()
     prediction_result = pd.DataFrame(index = data_train.index)
+    evaluation = {}
     model_ls = []
 
     for i in range(n_iterations):
 
-        # randomly choose sample size>=30 from the full data set,
-        # and split into train set and test set by randomly choose a ratio between 0.1 to 0.5 for test set
-        sample_size = random.randint(20, data_train.shape[0])
-        sample = data_train.sample(sample_size)
-        test_ratio = random.uniform(0.1, 0.5)
-        x_train, x_test, y_train, y_test = train_test_split(sample[x_label], sample[y_label], test_size=test_ratio)
-        # shuffle = True
+        # bootstrap: resample 80% of total data to train, and test on the unused data for performance - mse
+        # this loop results in two dataframe: one for predictions and one for fitness
+        sample_size = int(data_train.shape[0]*0.8)
+        # resample shuffles data and ignored time sequence
+        train_sample = resample(data_train, n_samples=sample_size, replace=False)
+        test_sample = data_train[~data_train.index.isin(train_sample.index)]
+        x_train = train_sample[x_label]
+        y_train = train_sample[y_label]
+        x_test = test_sample[x_label]
+        y_test = test_sample[y_label]
 
         training_time_start = time.time()
         model = build_model()
@@ -73,11 +77,11 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
         prediction_result = pd.concat([prediction_result, prediction], axis=1)
         fitness.loc[iterate_col_str, 'mse'] = mean_squared_error(y_test, predict)
         fitness.loc[iterate_col_str, 'training_time'] = training_time
-        fitness.loc[iterate_col_str, 'sample_size'] = sample_size
         fitness.loc[iterate_col_str, 'estimators'] = model.best_estimator_
 
     ## evaluations
-    # confidence interval
+
+    # confidence interval of prediction results
     for index in prediction_result.index:
         prediction_row = prediction_result.loc[index].dropna()
         if prediction_row.empty:
@@ -93,17 +97,27 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
                                           (data_train[y_label].values>prediction_result[['CI_low']].values), 1, 0)
 
     predictive_power = prediction_result['In_CI'].sum() / prediction_result.shape[0]
-    prediction_result['Predictive Power'] = predictive_power
+    prediction_result.to_csv(saving_path + '/prediction_results.csv')
+    evaluation['Predictive Power'] = predictive_power
     #print(prediction_result)
     print('At %d confidence, the prediction score is ' % confidence, predictive_power)
-    prediction_result.to_csv(saving_path+'/prediction_results.csv')
+
+    # confidence interval of mse
+    plot_histogram(fitness[['mse']], folder=saving_path, title='mse_hit')
+    mse_CI_low = np.percentile(fitness['mse'].values, [(100 - confidence)/2.])
+    mse_CI_up = np.percentile(fitness['mse'].values, [100 - (100 - confidence)/2.])
+    evaluation['MSE CI Lower Bound'] = mse_CI_low
+    evaluation['MSE CI Upper Bound'] = mse_CI_up
+    print('{}% confidence of mse is {} and {}'.format(confidence, mse_CI_low, mse_CI_up))
+
+    with open(saving_path +'/evaluation_dictionary.pkl', 'wb') as dict_file:
+        pickle.dump(evaluation, dict_file, protocol=pickle.HIGHEST_PROTOCOL)
 
     # find smallest mse and use according model to forecast
     fitness_min = fitness[['mse','training_time']].min()
     fitness_idxmin = fitness[['mse','training_time']].idxmin()
     print('the smallest mse is', fitness_min['mse'], ', training took', fitness.loc[fitness_idxmin['mse'],
-                                                                                    'training_time'],
-          's, from', fitness.loc[fitness_idxmin['mse'],'sample_size'], 'samples.')
+                                                                                    'training_time'],'s.')
     fitness.to_csv(saving_path+'/fitness.csv')
 
     # print('we choose the estimator with smallest validation mse.')
@@ -120,4 +134,4 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
 
     forecast = best_model.predict(x_forecast)
 
-    return forecast[0], predictive_power
+    return forecast[0], evaluation
