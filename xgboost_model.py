@@ -10,13 +10,14 @@ from plot import plot_histogram
 import pickle
 import os
 
-
-def build_model():
-    # we include hyperparameter search into xgboost model, and treating it as the total estimating model
+def build_model(target_mean):
+    # we include hyperparameter search into xgboost model, and treating it as a whole training model
     # use randomized grid search to save time
     params_dic = {
-        'silent': [1],
+        'silent': [1], # not showing running messages
+        # learning task parameters
         'learning_rate': [0.001, 0.01, 0.1, 0.2, 0,3],
+        'base_score':[target_mean], # initialize prediction score (global bias) to make sure the trees 'catching up' faster
         # tree based parameters
         'max_depth': [3, 6, 10, 15, 20],
         'subsample': [0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
@@ -27,12 +28,19 @@ def build_model():
         'alpha': [0.0001, 0.001, 0.1, 1.0, 5.0, 10.0, 50.0],
     }
     xgb_model = xgb.XGBRegressor()
-    random_search_model = RandomizedSearchCV(xgb_model, param_distributions=params_dic, n_iter=200, cv=3, verbose=0, n_jobs=-1)
+    random_search_model = RandomizedSearchCV(xgb_model, param_distributions=params_dic, n_iter=200, cv=3, verbose=0,
+                                             iid=False, n_jobs=-1)
+    # param_distributions: if a list is given, sample uniformly
+    # n_iter: not all the combinations are tested, n_iter set the number of total combinations,
+    # the more the better prediction but slower running time
+    # n_jobs: try as many processors as possible
+    # iid: return the average score across folds, not weighted by the number of samples in each test set
+    # cv: KFold cross validation
     return random_search_model
 
 def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, confidence=95):
 
-    # bootstrap: select subsamples to generate predictions by the 'model',
+    # bootstrap: select subsamples to generate predictions,
     # hence to build up prediction confidence intervals
 
     if not os.path.exists(saving_path):
@@ -52,21 +60,25 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
     evaluation = {}
     model_ls = []
 
+    data_train[y_label] = data_train[y_label]
+
     for i in range(n_iterations):
 
         # bootstrap: resample 80% of total data to train, and test on the unused data for performance - mse
         # this loop results in two dataframe: one for predictions and one for fitness
+        # empirically the training sample ratio have influence on the predictive power: 0.6 > 0.7 >0.8
         sample_size = int(data_train.shape[0]*0.7)
-        # resample shuffles data and ignored time sequence
+        # resample shuffles data
         train_sample = resample(data_train, n_samples=sample_size, replace=False)
         test_sample = data_train[~data_train.index.isin(train_sample.index)]
         x_train = train_sample[x_label]
         y_train = train_sample[y_label]
+        label_mean = y_train.mean().values[0]
         x_test = test_sample[x_label]
         y_test = test_sample[y_label]
 
         training_time_start = time.time()
-        model = build_model()
+        model = build_model(label_mean)
         model.fit(x_train, y_train)
         training_time = time.time() - training_time_start
         model_ls.append(model)

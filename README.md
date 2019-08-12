@@ -12,7 +12,7 @@ Running main.py will generate result files in the format of png (pictures),
  csv (excels) and sav (models) in the folder 'reports'.
 
  'n_iterations' is set as 500 in the main.py, which may take very long
- time for CPU. One can tune this number based on his computer capacity.
+ time on CPU. One can tune this number based on his computer capacity.
 
 Every run generates new reports covering old ones.
 
