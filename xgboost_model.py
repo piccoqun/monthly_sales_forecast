@@ -40,11 +40,9 @@ def build_model(target_mean):
 
 def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, confidence=95):
 
-    # bootstrap: select subsamples to generate predictions,
-    # hence to build up prediction confidence intervals
-
     if not os.path.exists(saving_path):
         os.mkdir(saving_path)
+
     '''
         with open(saving_path + '/model.sav', 'rb') as file1:
             best_model = pickle.load(file1)
@@ -55,21 +53,19 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
 
     x_label = x_forecast.columns
     y_label = ['Actuals']
+
     fitness = pd.DataFrame()
     prediction_result = pd.DataFrame(index = data_train.index)
     evaluation = {}
     model_ls = []
 
-    data_train[y_label] = data_train[y_label]
-
+    ## bootstrap: resample 80% of total data to train, and test on the unused data for performance - mse
+    # this loop results in two dataframe: one for predictions and one for fitness
     for i in range(n_iterations):
 
-        # bootstrap: resample 80% of total data to train, and test on the unused data for performance - mse
-        # this loop results in two dataframe: one for predictions and one for fitness
-        # empirically the training sample ratio have influence on the predictive power: 0.6 > 0.7 >0.8
-        sample_size = int(data_train.shape[0]*0.7)
+        sample_size = int(data_train.shape[0]*0.8)
         # resample shuffles data
-        train_sample = resample(data_train, n_samples=sample_size, replace=False)
+        train_sample = resample(data_train, n_samples=sample_size, replace=True)
         test_sample = data_train[~data_train.index.isin(train_sample.index)]
         x_train = train_sample[x_label]
         y_train = train_sample[y_label]
@@ -103,7 +99,7 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
         prediction_result.loc[index, 'CI_up'] = CI_up
         prediction_result.loc[index, 'CI_low'] = CI_low
 
-    # fill nan with mean value in CI_up and CI_low, so that it can be compared later
+    # fill nan with mean value in CI_up and CI_low
     prediction_result[['CI_up', 'CI_low']] = prediction_result[['CI_up','CI_low']].fillna(prediction_result[['CI_up','CI_low']].mean())
     prediction_result['In_CI'] = np.where((data_train[y_label].values<prediction_result[['CI_up']].values) &
                                           (data_train[y_label].values>prediction_result[['CI_low']].values), 1, 0)
@@ -111,7 +107,6 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
     predictive_power = prediction_result['In_CI'].sum() / prediction_result.shape[0]
     prediction_result.to_csv(saving_path + '/prediction_results.csv')
     evaluation['Predictive Power'] = predictive_power
-    #print(prediction_result)
     print('At %d confidence, the prediction score is ' % confidence, predictive_power)
 
     # confidence interval of mse
