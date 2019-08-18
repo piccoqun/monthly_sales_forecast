@@ -6,9 +6,10 @@ import time
 from sklearn.utils import resample
 from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import RandomizedSearchCV, train_test_split
-from plot import plot_histogram
+from plot import plot_histogram, lineplotCI
 import pickle
 import os
+
 
 def build_model(target_mean):
     # we include hyperparameter search into xgboost model, and treating it as a whole training model
@@ -38,6 +39,7 @@ def build_model(target_mean):
     # cv: KFold cross validation
     return random_search_model
 
+
 def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, confidence=95):
 
     if not os.path.exists(saving_path):
@@ -54,6 +56,7 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
     x_label = x_forecast.columns
     y_label = ['Actuals']
 
+    data_train.sort_index(inplace=True)
     fitness = pd.DataFrame()
     prediction_result = pd.DataFrame(index = data_train.index)
     evaluation = {}
@@ -88,6 +91,8 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
         fitness.loc[iterate_col_str, 'estimators'] = model.best_estimator_
 
     ## evaluations
+    prediction_result.sort_index(inplace=True)
+    prediction_result_col = prediction_result.columns
 
     # confidence interval of prediction results
     for index in prediction_result.index:
@@ -108,6 +113,11 @@ def model_predict(data_train, x_forecast, saving_path, n_iterations = 1000, conf
     prediction_result.to_csv(saving_path + '/prediction_results.csv')
     evaluation['Predictive Power'] = predictive_power
     print('At %d confidence, the prediction score is ' % confidence, predictive_power)
+
+    # plot predictions
+    prediction_result['val_mean'] = prediction_result[prediction_result_col].mean(axis=1)
+    lineplotCI(prediction_result.index.strftime('%Y-%m').values, prediction_result['val_mean'].values, data_train[y_label].values,
+               prediction_result['CI_low'], prediction_result['CI_up'], 'Month', 'Actuals', saving_path, 'Predicted Actuals')
 
     # confidence interval of mse
     plot_histogram(fitness[['mse']], folder=saving_path, title='mse_hit')

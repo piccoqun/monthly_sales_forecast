@@ -1,13 +1,16 @@
 # Monthly Sales Forecast
 
-## Package
+Given monthly and daily sales, the task is to forecast monthly sales 'Actuals'.
+
+
+## Dependencies
 * python 3.6.3
 * pandas 0.25.0
 * numpy 1.17.0
 * scikit-learn 0.21.3
 * xgboost 0.90
 
-## Code
+## Usage
 Running main.py will generate result files in the format of png (pictures),
  csv (excels) and sav (models) in the folder 'reports'.
 
