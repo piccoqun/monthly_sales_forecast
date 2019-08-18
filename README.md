@@ -6,16 +6,22 @@ In the business scenario,
 as new data feature, such as daily sales, comes in everyday, the model is retrained and made
 new forecast for each forecast date.
 
-The main modelling process includes data preprocessing (reform data into
+The main modelling methods includes data preprocessing (reform data into
 monthly time series, find weekdays and other basic cleaning), bootstrap,
 xgboost training and randomized hyperparameter search.
 
 The detailed analysis can be found in the pdf file 'Data Analysis Report'.
 
 ## Prediction Results
+Due to my limited computer capacity, the training only took 10 iterations
+of bootstrap for demonstration. (The more the better)
+
 For each forecast date, model is retrained and the bootstrap prediction results
-are saved in a folder named after the date. The prediction results are like
+are saved in a folder named after the date. Each prediction results is shown as
 ![picture](reports/model_15.01.2018/Predicted Actuals.png)
+
+The final forecast for each forecast date is
+![picture](https://drive.google.com/open?id=1DijrvY0gxbs-08rHOBtrW0xnYUnSLedt)
 
 ## Dependencies
 * python 3.6.3
