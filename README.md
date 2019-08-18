@@ -17,7 +17,8 @@ Due to my limited computer capacity, the training only took 10 iterations
 of bootstrap for demonstration. (The more the better)
 
 For each forecast date, model is retrained and the bootstrap prediction results
-are saved in a folder named after the date. Each prediction results is shown as
+on validation sets are saved in a folder named after the date.
+Each prediction results is shown as
 
 ![picture](https://github.com/piccoqun/monthly_sales_forecast/blob/master/reports/model_15.01.2018/Predicted%20Actuals.png)
 
@@ -44,3 +45,11 @@ Every run generates new reports covering old ones.
 The feature extracted data is produced in the folder 'data' as pkl files.
 If there are changes to original data, the two pickle files need to be
 deleted so that the code generates new feature extracted data.
+
+## Further Research
+* One may like to try adding past lag features for the training.
+* Plotting feature importance.
+* The model is tree based, so the scales shouldn't influence
+result too much. However, the empirical MSEs are very large,
+rescaling target values into smaller values leads
+to very small MSE.  Why?
