@@ -18,10 +18,12 @@ of bootstrap for demonstration. (The more the better)
 
 For each forecast date, model is retrained and the bootstrap prediction results
 are saved in a folder named after the date. Each prediction results is shown as
-![picture](reports/model_15.01.2018/Predicted Actuals.png)
+
+![picture](https://github.com/piccoqun/monthly_sales_forecast/blob/master/reports/model_15.01.2018/Predicted%20Actuals.png)
 
 The final forecast for each forecast date is
-![picture](https://drive.google.com/open?id=1DijrvY0gxbs-08rHOBtrW0xnYUnSLedt)
+
+![picture](https://github.com/piccoqun/monthly_sales_forecast/blob/master/reports/forecast%20result.png)
 
 ## Dependencies
 * python 3.6.3
