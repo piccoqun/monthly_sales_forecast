@@ -27,7 +27,7 @@ def main():
         saving_path = 'reports/model_'+ forecast_date_str
         x_forecast = forecast_dict[forecast_date].iloc[[-1]][x_label]
         # default bootstrap n_iterations=1000, confidence=95
-        n_iterations = 500
+        n_iterations = 10
         forecast_value, evaluation = model_predict(data_train = xy_train_df, x_forecast=x_forecast,
                                               saving_path=saving_path, n_iterations=n_iterations)
         time_delta = str(datetime.now() - forecast_start_time)

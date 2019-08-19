@@ -4,10 +4,9 @@ Given daily sales and some monthly features, the task is to forecast
 monthly sales 'Actuals' on specific weekdays (we call them the 'forecast dates').
 In the business scenario,
 as new data feature, such as daily sales, comes in everyday, the model is retrained and made
-new forecast for each forecast date.
+new forecast on each forecast date.
 
-The main modelling methods includes data preprocessing (reform data into
-monthly time series, find weekdays and other basic cleaning), bootstrap,
+The main modelling methods include data preprocessing, bootstrap,
 xgboost training and randomized hyperparameter search.
 
 The detailed analysis can be found in the pdf file 'Data Analysis Report'.

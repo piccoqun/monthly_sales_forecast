@@ -64,8 +64,8 @@ def vertical_plot():
     monthly_range.append(forecast_result.loc['2018-02-15':'2018-02-25'].index.values)
 
     plt.clf()
-    fig, ax = plt.subplots()
-    ax.plot(forecast_result['Forecast'])
+    fig, ax = plt.subplots(figsize=(12, 6))
+    ax.scatter(forecast_result.index.values, forecast_result['Forecast'].values, s=100)
     for i, x_span in enumerate(monthly_range):
         if i%2 == 0:
             ax.axvspan(x_span[0], x_span[-1], alpha=0.4, color='tan')
