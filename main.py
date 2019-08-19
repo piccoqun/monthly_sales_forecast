@@ -5,6 +5,7 @@ warnings.filterwarnings("ignore")
 
 
 def main():
+
     # step 1: load data
     from data_generator import load_data
     xy_train_df, forecast_dict = load_data()
@@ -18,7 +19,7 @@ def main():
     from xgboost_model import model_predict
     y_label = ['Actuals']
     x_label = list(set(xy_train_df.columns) - set(y_label))
-    forecast_result = pd.DataFrame(columns=['Forecast','Predictive Power', 'MSE Upper', 'MSE Lower','Running Time'])
+    forecast_result = pd.DataFrame(columns=['Forecast', 'Predictive Power', 'MSE Upper', 'MSE Lower', 'Running Time'])
 
     for forecast_date in forecast_dict.keys():
         forecast_date_str = forecast_date.strftime('%d.%m.%Y')
@@ -38,7 +39,7 @@ def main():
         print('forecasting for {} is finished, took {}s for {} iterations'.format(forecast_date_str,
                                                                                    time_delta, n_iterations))
 
-
+    # step 4: save and visualize forecast result
     print(forecast_result)
     forecast_result.to_csv('reports/forecast_result.csv', index=True)
 
@@ -46,7 +47,6 @@ def main():
     if plot_forecast is True:
         from plot import vertical_plot
         vertical_plot()
-
 
 
 if __name__ == '__main__':

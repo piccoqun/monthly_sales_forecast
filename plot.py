@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
-from matplotlib.dates import DateFormatter
+#from matplotlib.dates import DateFormatter
 
 
 def plot_df(subplots=False, df=None, folder='reports', title='data'):
@@ -22,7 +22,7 @@ def plot_df(subplots=False, df=None, folder='reports', title='data'):
 def plot_histogram(df = None, bins = 10, folder = 'reports', title = 'data'):
     # plot histogram of dataframe and save the figure under the folder reports
     plt.clf()
-    df.hist(bins=bins, figsize=(20,15))
+    df.hist(bins=bins, figsize=(20, 15))
     plt.savefig(folder + '/%s.png' % title)
     #plt.show()
 
@@ -31,7 +31,7 @@ def plot_histogram(df = None, bins = 10, folder = 'reports', title = 'data'):
 def lineplotCI(x, y_predicted, y_history, low_CI, upper_CI, x_label, y_label, folder, title):
 
     # Create the plot object
-    f, ax = plt.subplots()
+    f, ax = plt.subplots(figsize=(12, 6))
 
     # Plot the data, set the linewidth, color and transparency of the
     # line, provide a label for the legend
@@ -55,6 +55,7 @@ def lineplotCI(x, y_predicted, y_history, low_CI, upper_CI, x_label, y_label, fo
 
 
 def vertical_plot():
+
     forecast_result = pd.read_csv('reports/forecast_result.csv', index_col=0)
 
     monthly_range = []
